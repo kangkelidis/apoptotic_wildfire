@@ -1,0 +1,160 @@
+# This file contains the default configuration values.
+# Presets in presets.yaml can override these values.
+
+simulation:
+  # Number of steps to simulate
+  max_steps: 512
+
+  # Master Seed for Random Number Generation
+  seed: 42
+
+  # Simulation Grid Size (Width = Height)
+  grid_size: 200
+
+  # Number of Physics Substeps per Simulation Step
+  # Controls how much faster the physics engine runs relative to the swarm logic
+  physics_substeps: 1
+
+  # Compute Device
+  # - "mps": Apple Silicon GPU (M1/M2/M3 chips)
+  # - "cuda": NVIDIA GPU
+  # - "cpu": CPU fallback
+  # - "auto": Automatically select the best available device
+  device: mps
+
+  # Video Output Resolution
+  # - Independent from grid_size (upscaled via interpolation)
+  render_width: 800
+  render_height: 800
+
+  # Default simulation batch size (non-batch modes).
+  # - Used by visualization/default engine init but overridden by caller.
+  # - BatchRunner does not use this directly; it auto-packs one row per seed.
+  batch_size: 1
+
+# ==============================================================================
+# SIMULATION PHYSICS
+# ==============================================================================
+physics:
+
+  # WIND VECTOR (directional bias for heat diffusion)
+  # - Shifts the Gaussian diffusion kernel to simulate advection
+  # - Positive x: East, Negative x: West
+  # - Positive y: South, Negative y: North
+  wind:
+    x: 0.3    # eastward push
+    y: -0.4   # northward push
+
+  # IGNITION THRESHOLD (effective_threshold = ignition_threshold + retardant)
+  # - Range: 0.0 - 0.4
+  # A cell must reach 0.2 heat (2% max temp) from neighbours to start burning.
+  # - Minimum heat required to start burning fuel
+  # - Lower: Dry conditions, easy ignition
+  # - Higher: Wet conditions, harder to ignite
+  ignition_threshold: 0.15
+  suppression_saturation:
+    # When enabled, overlapping splash footprints have diminishing returns.
+    enabled: true
+    # Maximum useful retardant addition per cell per step before marginal gains fade.
+    per_step_cap: 0.2
+
+# ==============================================================================
+# SWARM CONFIGURATION
+# ==============================================================================
+swarm:
+  # NUMBER OF DRONES
+  n_drones: 200
+  # Time to reload/refill at base (in steps)
+  reload_time: 5
+  # Step interval for strategy decisions (in steps)
+  decision_interval: 10
+  # Fraction of launch-eligible drones that start already in the field.
+  # Held-back deployment-queue drones are always excluded from this fraction.
+  initial_in_air_fraction: 0
+  # For the first N eligible decisions of each newly available drone, override
+  # the strategy intent to "go". This makes all strategies open with the same
+  # initial deployment pattern.
+  initial_force_go_decisions: 0
+  # After launch, a drone must stay committed through this many future
+  # eligible decision opportunities before it may choose to return.
+  launch_commitment_decisions: 0
+  # Radius of the water splash effect (in grid cells Must be Odd)
+  splash_size: 9
+  base_service_queue:
+    # When enabled, each base can service only a fixed number of drones at once.
+    enabled: false
+    service_slots_per_base: 20
+  congestion_effects:
+    # When enabled, dense airborne areas cause slower movement and higher battery use.
+    enabled: true
+    # Local neighbour radius in normalised swarm coordinates [-1, 1].
+    radius: 0.15
+    # Congestion starts increasing once nearby airborne neighbours exceed this count.
+    threshold: 10
+    # Congestion reaches full strength at or above this nearby-airborne count.
+    full_congestion_count: 100
+    # Slowest allowed speed multiplier at full congestion.
+    min_speed_multiplier: 0.5
+    # Battery-drain multiplier at full congestion.
+    battery_drain_multiplier_at_full: 2.0
+  attrition:
+    # Master switch. When false, attrition logic is completely disabled.
+    enabled: false
+    # A drone becomes eligible for attrition only at or below this battery level.
+    # Matches normalized battery units [0, 1].
+    battery_threshold: 0.15
+    # Minimum local visual heat before fire contributes to attrition hazard.
+    # Uses the actor-side visual_heat observation.
+    fire_threshold: 0.10
+    # Attrition is disabled inside this radius around any base.
+    # Use a value larger than the docking threshold to create a real safe zone.
+    safe_zone_radius: 0.2
+    # Local crowding radius in normalized swarm coordinates [-1, 1].
+    # Drones within this radius count as nearby for crowding hazard.
+    crowding_radius: 0.03
+    # Minimum nearby-drone count before crowding starts increasing death risk.
+    crowding_threshold: 10
+    # Relative contribution of local fire exposure to the hazard score.
+    fire_weight: 0.3
+    # Relative contribution of local crowding to the hazard score.
+    crowding_weight: 0.3
+    # Hard cap on per-step death probability after all hazard terms are combined.
+    max_death_prob: 0.01
+
+# ==============================================================================
+# BATCH RUN PARAM GRID
+# ==============================================================================
+# Used by `main.py -b` to sweep multiple experiment configurations.
+# CLI `--strategies`/`--scenarios` override these two lists when provided.
+batch_run:
+  # Number of seeds sampled per configuration.
+  iterations: 1
+  # Optional process-level parallelism across independent engine packs.
+  # Keeps default behavior unchanged unless explicitly enabled.
+  # Recommended for CPU-only runs with many config/strategy/scenario packs.
+  multiprocess_engines: true
+  # Number of worker processes for multiprocess_engines.
+  # 0 means auto: min(cpu_count, number_of_packs).
+  multiprocess_workers: 10
+  # Safety guard: by default multiprocess engine mode runs only on CPU.
+  # Set true to allow it on accelerator devices (mps/cuda) if your system
+  # is stable under multi-process accelerator contention.
+  multiprocess_allow_accelerator: true
+
+  # Crash-resume mode: flush outputs after each strategy-pack completes.
+  # This allows resumes to skip already-finished strategies after failures.
+  strategy_checkpoint_flush: true
+
+  strategies: [frustration, labella, mappo, always]
+  scenarios: [stress_test, fast_spreading_fire]
+  presets: [normal]
+
+  # Core parameter sweep lists (cartesian product).
+  n_drones: [100, 300, 500, 700, 900, 1100, 1300, 1500]
+
+
+# ==============================================================================
+# RUNTIME OPTIONS
+# ==============================================================================
+runtime:
+  mappo_model_path: artifacts/checkpoints/mappo_final.pt

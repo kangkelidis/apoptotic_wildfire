@@ -1,0 +1,57 @@
+{
+  "loadConfigFrom": null,
+  "netlogoModelName": "model.nlogo",
+  "targetScenarioForAnalysis": "always-random",
+  "maxSimulationTime": 180,
+  "scenarioParams": {
+    "seed": 42,
+    "netlogo_seed": null,
+    "numOfSamples": 64,
+    "numOfRobots": 0,
+    "numOfPassengers": 200,
+    "numOfStaff": 2,
+    "fallLength": 500,
+    "fallChance": 25,
+    "robotPersuasionFactor": 1,
+    "robotParticipationStrategy": "always",
+    "robotParticipationConfig": {},
+    "robotInterferenceDelay": 30,
+    "maxNetlogoTicks": 1200,
+    "roomType": 8,
+    "enableVideo": false
+  },
+  "simulationScenarios": [
+    {
+      "name": "always-random",
+      "description": "Quick sweep for always participation",
+      "numOfRobots": [2, 4, 6, 8],
+      "adaptationStrategy": "RandomStrategy",
+      "robotParticipationStrategy": "always",
+      "enabled": true
+    },
+    {
+      "name": "frustration-random",
+      "description": "Quick sweep for frustration participation",
+      "numOfRobots": [2, 4, 6, 8],
+      "adaptationStrategy": "RandomStrategy",
+      "robotParticipationStrategy": "frustration",
+      "robotParticipationConfig": {
+        "debug": true,
+        "decisionInterval": 10
+      },
+      "enabled": true
+    },
+    {
+      "name": "labella-random",
+      "description": "Quick sweep for labella participation",
+      "numOfRobots": [2, 4, 6, 8],
+      "adaptationStrategy": "RandomStrategy",
+      "robotParticipationStrategy": "labella",
+      "robotParticipationConfig": {
+        "debug": true,
+        "decisionInterval": 10
+      },
+      "enabled": true
+    }
+  ]
+}

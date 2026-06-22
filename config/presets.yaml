@@ -1,0 +1,88 @@
+# Usage: python main.py --preset fast
+# These presets override values from base.yaml.
+
+
+# =============================================================================
+# FAST: Quick testing and development
+# =============================================================================
+# - about 120 drones to extinguish the fire
+fast:
+  simulation:
+      max_steps: 256
+      grid_size: 200
+      render_width: 400
+      render_height: 400
+      physics_substeps: 1
+
+  swarm:
+      n_drones: 500
+      reload_time: 5
+      decision_interval: 5
+      splash_size: 7
+
+# =============================================================================
+# NORMAL: Default preset for most experiments
+# =============================================================================
+normal:
+  simulation:
+      max_steps: 256
+      grid_size: 200
+      render_width: 400
+      render_height: 400
+      physics_substeps: 1
+
+  swarm:
+      n_drones: 1500
+      reload_time: 5
+      decision_interval: 10
+      splash_size: 7
+
+# =============================================================================
+# HIGH QUALITY: Slower, more detailed simulation
+# =============================================================================
+high:
+  simulation:
+      max_steps: 1024
+      grid_size: 500
+      render_width: 500
+      render_height: 500
+      physics_substeps: 2
+
+  swarm:
+      n_drones: 2000
+
+
+# =============================================================================
+# TRAINING: The default preset for RL training runs
+# =============================================================================
+training:
+  simulation:
+      max_steps: 128
+      grid_size: 100
+      render_width: 400
+      render_height: 400
+      physics_substeps: 1
+
+  swarm:
+      n_drones: 700
+      reload_time: 3
+      decision_interval: 10
+      splash_size: 7
+
+
+# =============================================================================
+# VISUALIZATION: For generating high-quality videos of the simulation
+# =============================================================================
+visualization:
+  simulation:
+      max_steps: 512
+      grid_size: 800
+      render_width: 2000
+      render_height: 2000
+      physics_substeps: 1
+
+  swarm:
+      n_drones: 1500
+      reload_time: 5
+      decision_interval: 10
+      splash_size: 7

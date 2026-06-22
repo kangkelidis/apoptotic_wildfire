@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Kangkelidis"
+  given-names: "Alexandros"
+  orcid: "https://orcid.org/0009-0000-6296-0902"
+- family-names: "Gavidia-Calderon"
+  given-names: "Carlos"
+  orcid: "https://orcid.org/0000-0002-6136-0566"
+- family-names: "Bennaceur"
+  given-names: "Amel"
+  orcid: "https://orcid.org/0000-0002-6124-9622"
+- family-names: "Nuseibeh"
+  given-names: "Bashar"
+  orcid: "https://orcid.org/0000-0002-3476-053X"
+title: "Apoptotic Agents for Adapting Population Size in Open Decentralised Multi-Agent Systems"
+date-released: 2026-06-25
+url: "https://github.com/kangkelidis/apoptotic-wildfire"

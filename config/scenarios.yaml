@@ -1,0 +1,273 @@
+# This file defines scripted events that modify the simulation mid-run.
+#
+# EVENT TIMING:
+#   Use 'step' for absolute step numbers OR 'step_percentage' (0.0-1.0) for
+#   relative timing that scales with total simulation steps.
+#   Example: step_percentage: 0.25 triggers at 25% of total steps
+#   For randomized timing, use:
+#     - step_range: [min_step, max_step]
+#     - step_percentage_range: [min_pct, max_pct]
+#
+# Supported Event Types:
+#   - wind_shift: Change wind direction and magnitude
+#   - ignite_fire: Start new fires at specified or random locations
+#   - deploy_drones: Release held drones into the launch queue
+#   - physics_param: Generic physics parameter modification
+#
+# Deployment Strategy:
+#   Use 'count' for absolute drone count OR 'percentage' (0.0-1.0) to release
+#   a fraction of held drones.
+#   Example: percentage: 0.5 releases half of the reserved drones
+#
+# Reserved Drones:
+#   Use 'reserved_drones.percentage' to hold back drones at base for later release.
+
+
+# ----------------------------------------------------------------------------
+# BASELINE: No events, standard simulation
+# ----------------------------------------------------------------------------
+baseline:
+  description: "Control scenario with no dynamic events"
+  events:
+    - step: 1
+      type: ignite_fire
+      position: random
+      radius: 10
+
+    - step: 1
+      type: deploy_drones
+      percentage: 1.0
+
+    - step_percentage: 0.3
+      type: ignite_fire
+      position: random
+      radius: 6
+
+    - step_percentage: 0.7
+      type: ignite_fire
+      position: random
+      radius: 6
+
+# ----------------------------------------------------------------------------
+# RANDOM IGNITE: Single ignition at random step and random location
+# ----------------------------------------------------------------------------
+random_ignite:
+  description: "Ignite one random fire at a random time window."
+  events:
+    - step: 1
+      type: deploy_drones
+      percentage: 1.0
+
+    - step_percentage_range: [0.05, 0.80]
+      type: ignite_fire
+      position: random
+      radius: 5
+
+# ----------------------------------------------------------------------------
+# STRESS TEST: Fire Pause and Resume
+# ----------------------------------------------------------------------------
+# Fire stops at 1/3, resumes at 2/3.
+# Teaches: Resource conservation during lulls, rapid re-engagement
+stress_test:
+  description: "Fire pauses mid-simulation, then resurges."
+
+  reserved_drones:
+    percentage: 0.25
+
+  events:
+    # Initial fire
+    - step: 1
+      type: ignite_fire
+      position: center
+      radius: 6
+
+    # slow spread
+    - step_percentage: 0.0
+      type: physics_param
+      param: IGNITION_THRESHOLD
+      value: 0.20
+
+    # At 33%: Suppress fire spread (simulating rain/containment)
+    - step_percentage: 0.3
+      type: physics_param
+      param: IGNITION_THRESHOLD
+      value: 0.99    # Make ignition nearly impossible
+
+
+    - step_percentage: 0.4
+      type: deploy_drones
+      percentage: 1.0  # Deploy reserves during lull
+
+    # At 66%: Fire resurges (wind shift, dry conditions)
+    - step_percentage: 0.5
+      type: physics_param
+      param: IGNITION_THRESHOLD
+      value: 0.1    # Easy ignition
+
+    - step_percentage: 0.5
+      type: wind_shift
+      wind:
+        x: -0.9
+        y: 0.5
+
+    - step_percentage: 0.5
+      type: ignite_fire
+      position: random
+      radius: 6
+
+    - step_percentage: 0.5
+      type: ignite_fire
+      position: random
+      radius: 6
+
+# ----------------------------------------------------------------------------
+# MULTI PHASE: Repeated suppression and resurgence
+# ----------------------------------------------------------------------------
+multi_phase:
+  description: "Three fire bursts separated by calm periods."
+  events:
+    - step: 1
+      type: deploy_drones
+      percentage: 1.0
+
+    - step: 1
+      type: ignite_fire
+      position: center
+      radius: 5
+
+    - step_percentage: 0.20
+      type: physics_param
+      param: IGNITION_THRESHOLD
+      value: 0.99
+
+    - step_percentage: 0.40
+      type: physics_param
+      param: IGNITION_THRESHOLD
+      value: 0.18
+
+    - step_percentage: 0.40
+      type: ignite_fire
+      position: random
+      radius: 5
+
+    - step_percentage: 0.55
+      type: physics_param
+      param: IGNITION_THRESHOLD
+      value: 0.99
+
+    - step_percentage: 0.75
+      type: physics_param
+      param: IGNITION_THRESHOLD
+      value: 0.18
+
+    - step_percentage: 0.75
+      type: ignite_fire
+      position: random
+      radius: 6
+
+# ----------------------------------------------------------------------------
+# DISTRIBUTED FIRES: Spatially separated ignition bursts
+# ----------------------------------------------------------------------------
+distributed_fires:
+  description: "Multiple scattered ignitions with staggered reinforcements."
+  events:
+    - step: 1
+      type: deploy_drones
+      percentage: 1.0
+
+    - step: 1
+      type: ignite_fire
+      position:
+        x: 20
+        y: 20
+      radius: 4
+
+    - step: 1
+      type: ignite_fire
+      position:
+        x: 80
+        y: 80
+      radius: 4
+
+    - step_percentage: 0.30
+      type: ignite_fire
+      position:
+        x: 20
+        y: 80
+      radius: 5
+
+    - step_percentage: 0.50
+      type: ignite_fire
+      position:
+        x: 80
+        y: 20
+      radius: 5
+
+# ----------------------------------------------------------------------------
+# FAST SPREADING FIRE (DRY/WINDY)
+# ----------------------------------------------------------------------------
+fast_spreading_fire:
+  description: "Fast-spreading fire simulating dry fuel and wind."
+  events:
+    - step: 1
+      type: physics_param
+      param: IGNITION_THRESHOLD
+      value: 0.10
+
+    - step: 1
+      type: wind_shift
+      wind:
+        x: 1
+        y: -0.8
+
+    - step: 1
+      type: ignite_fire
+      position: center
+      radius: 6
+
+    - step: 1
+      type: deploy_drones
+      percentage: 1.0
+
+    - step_percentage: 0.3
+      type: ignite_fire
+      position: random
+      radius: 6
+
+    - step_percentage: 0.3
+      type: wind_shift
+      wind:
+        x: -0.6
+        y: 1
+
+# ----------------------------------------------------------------------------
+# DRY FIRE (CALM)
+# ----------------------------------------------------------------------------
+dry_fire_calm:
+  description: "Fast-spreading fire but with no wind."
+  events:
+    - step: 1
+      type: physics_param
+      param: IGNITION_THRESHOLD
+      value: 0.10
+
+    - step: 1
+      type: wind_shift
+      wind:
+        x: 0.0
+        y: 0.0
+
+    - step: 1
+      type: ignite_fire
+      position: center
+      radius: 3
+
+    - step: 1
+      type: deploy_drones
+      percentage: 1.0
+
+    - step: 100
+      type: ignite_fire
+      position: random
+      radius: 5
+
