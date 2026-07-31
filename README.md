@@ -1,8 +1,7 @@
 # Apoptotic Wildfire
 
 Simulator, controllers, and trained model for the wildfire participation-control
-experiments. The accompanying paper is included at
-[`artifacts/paper.pdf`](artifacts/paper.pdf).
+experiments.
 
 The simulator models a swarm of firefighting drones suppressing a wildfire.
 
