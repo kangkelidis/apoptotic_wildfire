@@ -5,6 +5,10 @@ experiments.
 
 The simulator models a swarm of firefighting drones suppressing a wildfire.
 
+
+https://github.com/user-attachments/assets/191a2034-173a-4402-8a46-6f7f0ef1d776
+
+
 ## Requirements
 
 - Python 3.11 or newer
